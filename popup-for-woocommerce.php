@@ -3,7 +3,7 @@
  * Plugin Name: Popup For Woocommerce
  * Description: Display a fully customizable notice popup on the WooCommerce checkout page. Ideal for announcing delivery schedules, holidays, or important order notices. Manage the popup title, message, note, display duration, and enable/disable status directly from your WordPress dashboard.
  * Plugin URI: https://simple-contact-form-management.com
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Fardin Ahmed
  * Author URI: https://github.com/devfardin
  * Text Domain: pfwc
@@ -35,6 +35,10 @@ function pfwc_settings_page() {
         update_option( 'pfwc_text',     sanitize_textarea_field( $_POST['pfwc_text'] ) );
         update_option( 'pfwc_note',     sanitize_text_field( $_POST['pfwc_note'] ) );
         update_option( 'pfwc_duration', absint( $_POST['pfwc_duration'] ) );
+        $pages = isset( $_POST['pfwc_pages'] ) && is_array( $_POST['pfwc_pages'] )
+            ? array_map( 'sanitize_text_field', $_POST['pfwc_pages'] )
+            : [];
+        update_option( 'pfwc_pages', $pages );
         echo '<div class="notice notice-success"><p>✅ সেটিংস সেভ হয়েছে!</p></div>';
     }
 
@@ -43,6 +47,16 @@ function pfwc_settings_page() {
     $text     = get_option( 'pfwc_text',    "আপনার অর্ডারটি\nঢাকার ভিতরে ২৬ তারিখে ডেলিভারি পাবেন।\nঢাকার বাইরে ২৭ তারিখ অথবা ২৮ তারিখ ডেলিভারি পাবেন" );
     $note     = get_option( 'pfwc_note',    '❗ দয়া করে ১০০% নিশ্চিত হয়ে অর্ডার কনফার্ম করুন।' );
     $duration = get_option( 'pfwc_duration', 7 );
+    $pages    = get_option( 'pfwc_pages', [ 'wc_checkout' ] );
+
+    $wc_special = [
+        'wc_checkout'  => '🛒 Checkout',
+        'wc_cart'      => '🛍️ Cart',
+        'wc_shop'      => '🏪 Shop',
+        'wc_account'   => '👤 My Account',
+        'wc_thankyou'  => '✅ Thank You (Order Received)',
+    ];
+    $all_pages = get_pages( [ 'post_status' => 'publish', 'sort_column' => 'post_title' ] );
     ?>
     <div class="wrap">
         <h1>Checkout Popup সেটিংস</h1>
@@ -52,6 +66,26 @@ function pfwc_settings_page() {
                 <tr>
                     <th>Popup চালু করুন</th>
                     <td><label><input type="checkbox" name="pfwc_enabled" value="1" <?php checked( $enabled, 1 ); ?>> সক্রিয়</label></td>
+                </tr>
+                <tr>
+                    <th>কোন পেজে দেখাবে</th>
+                    <td>
+                        <strong style="display:block;margin-bottom:6px">WooCommerce Pages</strong>
+                        <?php foreach ( $wc_special as $key => $label ) : ?>
+                        <label style="display:block;margin-bottom:4px">
+                            <input type="checkbox" name="pfwc_pages[]" value="<?php echo esc_attr( $key ); ?>" <?php checked( in_array( $key, $pages ) ); ?>>
+                            <?php echo esc_html( $label ); ?>
+                        </label>
+                        <?php endforeach; ?>
+                        <strong style="display:block;margin:10px 0 6px">All Pages</strong>
+                        <?php foreach ( $all_pages as $p ) : ?>
+                        <label style="display:block;margin-bottom:4px">
+                            <input type="checkbox" name="pfwc_pages[]" value="<?php echo esc_attr( $p->ID ); ?>" <?php checked( in_array( (string) $p->ID, $pages ) ); ?>>
+                            <?php echo esc_html( $p->post_title ); ?>
+                        </label>
+                        <?php endforeach; ?>
+                        <p class="description">যে পেজে popup দেখাতে চান সেটি সিলেক্ট করুন।</p>
+                    </td>
                 </tr>
                 <tr>
                     <th>Title (শিরোনাম)</th>
@@ -77,10 +111,24 @@ function pfwc_settings_page() {
     <?php
 }
 
+// --- Helper ---
+function pfwc_is_active_page() {
+    if ( ! get_option( 'pfwc_enabled', 1 ) ) return false;
+    $pages = get_option( 'pfwc_pages', [ 'wc_checkout' ] );
+    if ( empty( $pages ) ) return false;
+    if ( in_array( 'wc_checkout', $pages ) && function_exists( 'is_checkout' )   && is_checkout()    && ! is_wc_endpoint_url( 'order-received' ) ) return true;
+    if ( in_array( 'wc_thankyou', $pages ) && function_exists( 'is_checkout' )   && is_checkout()    && is_wc_endpoint_url( 'order-received' ) )  return true;
+    if ( in_array( 'wc_cart',     $pages ) && function_exists( 'is_cart' )        && is_cart() )        return true;
+    if ( in_array( 'wc_shop',     $pages ) && function_exists( 'is_shop' )        && is_shop() )        return true;
+    if ( in_array( 'wc_account',  $pages ) && function_exists( 'is_account_page' ) && is_account_page() ) return true;
+    $page_ids = array_filter( $pages, 'is_numeric' );
+    if ( ! empty( $page_ids ) && is_page( array_map( 'intval', $page_ids ) ) )    return true;
+    return false;
+}
+
 // --- Frontend ---
 add_action( 'wp_enqueue_scripts', function() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) return;
-    if ( ! get_option( 'pfwc_enabled', 1 ) ) return;
+    if ( ! pfwc_is_active_page() ) return;
 
     wp_enqueue_style( 'pfwc-style', PFWC_URL . 'assets/popup.css', [], '1.0.0' );
     wp_enqueue_script( 'pfwc-script', PFWC_URL . 'assets/popup.js', [], '1.0.0', true );
@@ -91,8 +139,7 @@ add_action( 'wp_enqueue_scripts', function() {
 });
 
 add_action( 'wp_footer', function() {
-    if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) return;
-    if ( ! get_option( 'pfwc_enabled', 1 ) ) return;
+    if ( ! pfwc_is_active_page() ) return;
 
     $title    = get_option( 'pfwc_title',   '⚠️ ঈদের ছুটির কারণে কুরিয়ার সার্ভিস বন্ধ ⚠️' );
     $text     = get_option( 'pfwc_text',    '' );
