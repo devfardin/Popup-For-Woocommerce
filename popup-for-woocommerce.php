@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 define( 'PFWC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PFWC_URL', plugin_dir_url( __FILE__ ) );
 
+require_once PFWC_DIR . 'includes/orderAction.php';
+
 // --- Admin Menu ---
 add_action( 'admin_menu', function() {
     add_menu_page(
@@ -131,6 +133,7 @@ add_action( 'wp_enqueue_scripts', function() {
     if ( ! pfwc_is_active_page() ) return;
 
     wp_enqueue_style( 'pfwc-style', PFWC_URL . 'assets/popup.css', [], '1.0.0' );
+    wp_enqueue_style( 'pfwc-order-action', PFWC_URL . 'assets/orderAction.css', [], '1.0.0' );
     wp_enqueue_script( 'pfwc-script', PFWC_URL . 'assets/popup.js', [], '1.0.0', true );
 
     wp_localize_script( 'pfwc-script', 'pfwcData', [

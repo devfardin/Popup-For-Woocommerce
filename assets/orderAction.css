@@ -1,0 +1,21 @@
+.elementor-shortcode a.checkout_btn{
+    background: var(--e-global-color-primary);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3em;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    width: 100%;
+    display: block;
+    text-align: center;
+    transition: all 0.3s;
+    border: 1px solid var(--e-global-color-primary);
+}
+.elementor-shortcode a.checkout_btn:hover{
+    background: white;
+    color: var(--e-global-color-primary);
+    box-shadow: 0px 0px 3px 0px #B5D062;
+    border: 1px solid var(--e-global-color-primary);
+
+}
