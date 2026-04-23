@@ -7,7 +7,6 @@ add_shortcode('checkout_btn', 'order_action');
 function order_action()
 {
     ob_start();
-    wp_enqueue_style('pfwc-order-action');
     global $product;
     $product_id = $product->get_id();
     $direct_checkout_url = wc_get_checkout_url() . '?add-to-cart=' . $product_id;
