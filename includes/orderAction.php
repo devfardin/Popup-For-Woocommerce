@@ -2,7 +2,7 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-add_shortcode('checkout', 'order_action');
+add_shortcode('checkout_btn', 'order_action');
 
 function order_action()
 {

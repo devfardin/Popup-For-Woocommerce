@@ -3,7 +3,7 @@
  * Plugin Name: Popup For Woocommerce
  * Description: Display a fully customizable notice popup on the WooCommerce checkout page. Ideal for announcing delivery schedules, holidays, or important order notices. Manage the popup title, message, note, display duration, and enable/disable status directly from your WordPress dashboard.
  * Plugin URI: https://simple-contact-form-management.com
- * Version: 2.0.0
+ * Version: 2.2.0
  * Author: Fardin Ahmed
  * Author URI: https://github.com/devfardin
  * Text Domain: pfwc
