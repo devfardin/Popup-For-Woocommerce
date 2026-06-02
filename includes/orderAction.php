@@ -8,8 +8,9 @@ function order_action()
 {
     ob_start();
     global $product;
+    // https://kaporghor.com/checkout/?wc-quick-buy-now=12474&quantity=1
     $product_id = $product->get_id();
-    $direct_checkout_url = wc_get_checkout_url() . '?add-to-cart=' . $product_id;
+    $direct_checkout_url = wc_get_checkout_url() . '?wc-quick-buy-now=' . $product_id . '&quantity=1';
     echo '<a class="checkout_btn" href="' . $direct_checkout_url . '"> অর্ডার করুন </a>';
 
     return ob_get_clean();
