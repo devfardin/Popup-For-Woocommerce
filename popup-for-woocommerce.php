@@ -130,6 +130,11 @@ function pfwc_is_active_page() {
 
 // --- Frontend ---
 add_action( 'wp_enqueue_scripts', function() {
+    // Always load checkout styles on CartFlows steps
+    if ( is_singular( 'cartflows_step' ) ) {
+        wp_enqueue_style( 'pfwc-customize-checkout', PFWC_URL . 'assets/customizeCheckout.css', [], '2.0.0' );
+    }
+
     if ( ! pfwc_is_active_page() ) return;
 
     wp_enqueue_style( 'pfwc-style', PFWC_URL . 'assets/popup.css', [], '1.0.0' );
@@ -140,6 +145,7 @@ add_action( 'wp_enqueue_scripts', function() {
         'duration' => (int) get_option( 'pfwc_duration', 7 ),
     ]);
 });
+
 
 add_action( 'wp_footer', function() {
     if ( ! pfwc_is_active_page() ) return;
